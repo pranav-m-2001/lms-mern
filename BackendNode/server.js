@@ -31,7 +31,7 @@ app.post('/clerk', express.json(), clerkWebhooks)
 app.use('/api/educator',express.json(), educatorRouter)
 app.use('/api/user', express.json(), authRouter)
 app.use('/api/course', express.json(), courseRouter)
-app.use('/stripe', express.raw({type: 'application/json'}), stripeWebhook)
+app.post('/stripe', express.raw({type: 'application/json'}), stripeWebhook)
 
 app.listen(PORT, ()=>{
     console.log(`Server listening to port ${PORT}`)

@@ -1,6 +1,6 @@
 const { Webhook } = require('svix')
 const User = require('../Models/User')
-const{ Stripe } = require('stripe')
+const { Stripe } = require('stripe')
 const Purchase = require('../Models/Purchase')
 const Course = require('../Models/Course')
 
@@ -55,16 +55,17 @@ const clerkWebhooks = async (req,res)=>{
     }
 }
 
-const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
+
 
 const stripeWebhook = async (request,response)=>{
 
+    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
     const sig = request.headers['stripe-signature'];
 
     let event;
           
     try {
-        event = Stripe.webhooks.constructEvent(request.body, sig, process.env.SRTIPE_WEBHOOK_SECRET);
+        event = Stripe.webhooks.constructEvent(request.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
         }
     catch (err) {
         response.status(400).send(`Webhook Error: ${err.message}`);
@@ -117,5 +118,6 @@ const stripeWebhook = async (request,response)=>{
 }
 
 module.exports = {
-    clerkWebhooks,stripeWebhook,
+    clerkWebhooks,
+    stripeWebhook,
 }

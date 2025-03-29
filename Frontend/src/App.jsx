@@ -13,6 +13,11 @@ import StudentsEnrolled from "./pages/educator/StudentsEnrolled"
 import Navbar from "./components/students/Navbar"
 import Footer from "./components/students/Footer"
 import "quill/dist/quill.snow.css"
+import Register from "./pages/Register"
+import Login from "./pages/Login"
+import { ToastContainer } from 'react-toastify'
+import "react-toastify/dist/ReactToastify.css"
+
 
 function App() {
 
@@ -20,10 +25,13 @@ function App() {
 
   return (
     <div className="text-default min-h-screen bg-white">
+      <ToastContainer/>
       {
         !isEducatorRoute && <Navbar/>
       }
       <Routes>
+        <Route path="/login" element={<Login/>} />
+        <Route path="/register" element={<Register/>} />
         <Route path="/" element={<Home/>} />
         <Route path="/course-list" element={<CourseList/>} />
         <Route path="/course-list/:input" element={<CourseList/>} />
