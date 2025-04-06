@@ -5,6 +5,7 @@ const Purchase = require('../Models/Purchase')
 const { Stripe } = require('stripe')
 const Course = require('../Models/Course')
 const CourseProgress = require('../Models/CourseProgress')
+const jwt = require('jsonwebtoken')
 
 const registerUser = async (req,res)=>{
     try{
@@ -27,7 +28,7 @@ const registerUser = async (req,res)=>{
         })
         await user.save()
         generteTokenAndSetCookies(res, user._id)
-        return res.status(201).json({success: false, message: 'User created'})
+        return res.status(201).json({success: true, message: 'User created'})
 
 
     }catch(error){
@@ -57,6 +58,23 @@ const loginUser = async (req,res)=>{
 
     }catch(error){
         res.status(400).json({success: false, message: error.message})
+    }
+}
+
+const checkAuth = async (req,res)=>{
+    try{
+
+        const token = req.cookies.token
+        if(!token){
+            return res.status(200).json({success: false, message: 'Unauthorized'})
+        }
+
+        const decode = jwt.verify(token, process.env.JWT_SECRET_KEY)
+        const user = await User.findById(decode.userId).select(['-password'])
+        return res.status(200).json({success: true, user})
+
+    }catch(error){
+         return res.status(500).json({success: false, message: error.message})
     }
 }
 
@@ -162,12 +180,12 @@ const updateUserCourseProgress = async (req,res)=>{
         }else{
             await CourseProgress.create({
                 userId,
-                lectureId,
+                courseId,
                 lectureCompleted: [lectureId]
             })
         }
 
-        return res.status(200).json({success: true, message: 'lecture updated'})
+        return res.status(200).json({success: true, message: 'Lecture Updated'})
 
     }catch(error){
         return res.status(500).json({success: false, message: error.message})
@@ -222,7 +240,7 @@ const addUserRatings = async (req,res)=>{
         return res.status(200).json({success: true, message: 'Rating added'})
 
     }catch(error){
-        return res.status(500).json({success: false, message: error.message})
+        return res.status(500).json({success: false, message: error.message}) 
     }
 }
 
@@ -230,5 +248,5 @@ module.exports = {
     registerUser, loginUser,logout,
     getUserData,enrolledCourses,purchaseCourse,
     updateUserCourseProgress,getUserProgressData,
-    addUserRatings,
+    addUserRatings,checkAuth
 }

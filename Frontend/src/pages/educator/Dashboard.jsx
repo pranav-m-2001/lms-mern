@@ -2,20 +2,39 @@ import { useContext, useEffect, useState } from "react"
 import { AppContext } from "../../context/AppContext"
 import { assets, dummyDashboardData } from "../../assets/assets"
 import Loading from "../../components/students/Loading"
+import { toast } from "react-toastify"
+import axios from "axios"
 
 function Dashboard(){
 
 
-    const { currency } = useContext(AppContext)
+    const { currency, backenUrl, isEducator } = useContext(AppContext)
     const [dashboardData, setDashboardData] = useState(null)
 
-    function fetchDashboardData(){
-        setDashboardData(dummyDashboardData)
+    async function fetchDashboardData(){
+        try{
+
+            const { data } = await axios.get(`${backenUrl}/api/educator/dashboard`, {withCredentials: true})
+            if(data.success){
+                setDashboardData(data.dashboardData)
+            }else{
+                toast.error(data.message)
+            }
+
+        }catch(error){
+            if(error?.response?.data?.message){
+                toast.error(error?.response?.data?.message)
+            }else{
+                toast.error(error.message)
+            }
+        }
     }
 
     useEffect(()=>{
-        fetchDashboardData()
-    },[])
+        if(isEducator){
+            fetchDashboardData()
+        }
+    },[isEducator])
 
     return dashboardData ? (
         <div className="min-h-screen flex flex-col items-start justify-between gap-8 md:p-8 md:pb-0 p-4 pt-8 pb-0 mb-2">
@@ -24,7 +43,7 @@ function Dashboard(){
                     <div className="flex items-center gap-3 shadow-card border border-blue-500 p-4 w-56 rounded-md">
                         <img src={assets.patients_icon} alt="" />
                         <div>
-                            <p className="text-2xl font-medium text-gray-600">{dashboardData.enrolledStudentsData.length}</p>
+                            <p className="text-2xl font-medium text-gray-600">{dashboardData?.enrolledStudentsData?.length || 0}</p>
                             <p className="text-base text-gray-500">Total Enrolments</p>
                         </div>
                     </div>
@@ -56,7 +75,7 @@ function Dashboard(){
                             </thead>
                             <tbody className="text-sm text-gray-500">
                                 {
-                                    dashboardData.enrolledStudentsData.map((item,index)=>(
+                                   dashboardData?.enrolledStudentsData && dashboardData.enrolledStudentsData.map((item,index)=>(
                                         <tr key={index} className="border-b border-gray-500/20">
                                             <td className="px-4 py-3 text-center hidden sm:table-cell border-r border-gray-500/20">{index + 1}</td>
                                             <td className="md:px-4 px-2 py-3 flex items-center space-x-3 border-r border-gray-500/20">

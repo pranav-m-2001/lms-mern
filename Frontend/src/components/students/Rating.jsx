@@ -27,7 +27,7 @@ function Rating({ initialRating, onRate }){
                             &#9733;
                         </span>
                     )
-                })
+                }) 
             }
         </div>
     )

@@ -1,25 +1,61 @@
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { AppContext } from "../../context/AppContext"
 import { Line } from 'rc-progress'
+import { toast } from "react-toastify"
+import axios from "axios"
 
 function MyEnrollments(){
 
 
-    const { enrolledCourse,fecthEnrolledCourse,calculateCourseDuration,navigate } = useContext(AppContext)
+    const { enrolledCourse,fecthEnrolledCourse,calculateCourseDuration,navigate,userData,calculateNoOfLectures,backenUrl } = useContext(AppContext)
     const [progressArray, setProgressArray] = useState([
-        {lectureCompleted: 2, totalLecture: 4},
-        {lectureCompleted: 1, totalLecture: 5},
-        {lectureCompleted: 3, totalLecture: 6},
-        {lectureCompleted: 4, totalLecture: 4},
-        {lectureCompleted: 0, totalLecture: 3},
-        {lectureCompleted: 5, totalLecture: 7},
-        {lectureCompleted: 6, totalLecture: 8},
-        {lectureCompleted: 4, totalLecture: 10},
-        {lectureCompleted: 7, totalLecture: 7},
-        {lectureCompleted: 1, totalLecture: 4},
-        {lectureCompleted: 0, totalLecture: 2},
-        {lectureCompleted: 5, totalLecture: 5},
+        // {lectureCompleted: 2, totalLecture: 4},
+        // {lectureCompleted: 1, totalLecture: 5},
+        // {lectureCompleted: 3, totalLecture: 6},
+        // {lectureCompleted: 4, totalLecture: 4},
+        // {lectureCompleted: 0, totalLecture: 3},
+        // {lectureCompleted: 5, totalLecture: 7},
+        // {lectureCompleted: 6, totalLecture: 8},
+        // {lectureCompleted: 4, totalLecture: 10},
+        // {lectureCompleted: 7, totalLecture: 7},
+        // {lectureCompleted: 1, totalLecture: 4},
+        // {lectureCompleted: 0, totalLecture: 2},
+        // {lectureCompleted: 5, totalLecture: 5},
     ])
+
+    async function getCourseProgress(){
+        try{
+
+            const tempProgressArray = await Promise.all(
+                enrolledCourse.map( async (course)=>{
+                    const { data } = await axios.post(`${backenUrl}/api/user/get-course-progress`, {courseId: course._id}, {withCredentials: true})
+                    let totalLectures = calculateNoOfLectures(course)
+                    const lectureCompleted = data.progressData ? data.progressData.lectureCompleted.length : 0
+                    return {totalLectures, lectureCompleted}
+                })  
+            )
+            setProgressArray(tempProgressArray)
+
+        }catch(error){
+            if(error?.response?.data?.message){
+                toast.error(error?.response?.data?.message)
+            }else{
+                toast.error(error.message)
+            }
+        }
+    }
+
+    useEffect(()=>{
+        if(userData){
+            fecthEnrolledCourse()
+        }
+    },[userData])
+
+    useEffect(()=>{
+        if(enrolledCourse.length > 0){
+            getCourseProgress()
+        }
+    },[enrolledCourse])
 
 
     return(

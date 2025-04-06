@@ -1,5 +1,5 @@
 const express = require('express')
-const { loginUser,registerUser,logout,getUserData,enrolledCourses,purchaseCourse,updateUserCourseProgress,getUserProgressData,addUserRatings } = require('../Contollers/userController')
+const { loginUser,registerUser,logout,getUserData,enrolledCourses,purchaseCourse,updateUserCourseProgress,getUserProgressData,addUserRatings,checkAuth } = require('../Contollers/userController')
 const { verifyToken } = require('../middleware/authMiddleware')
 
 const authRouter = express.Router()
@@ -14,5 +14,6 @@ authRouter.post('/purchase', verifyToken, purchaseCourse)
 authRouter.post('/update-course-progress', verifyToken, updateUserCourseProgress)
 authRouter.post('/get-course-progress', verifyToken, getUserProgressData)
 authRouter.post('/add-rating', verifyToken, addUserRatings)
+authRouter.get('/check-auth', verifyToken, checkAuth)
 
 module.exports = authRouter

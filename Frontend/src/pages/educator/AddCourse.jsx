@@ -1,10 +1,15 @@
 import uniqid from 'uniqid'
 import Quill from 'quill'
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { assets } from '../../assets/assets'
+import { AppContext } from '../../context/AppContext'
+import { toast } from 'react-toastify'
+import axios from 'axios'
 
 function AddCourse(){
 
+
+    const { backenUrl } = useContext(AppContext)
     const quillRef = useRef(null)
     const editorRef = useRef(null)
 
@@ -79,8 +84,46 @@ function AddCourse(){
         })
     }
 
-    function handleSubmit(event){
+    async function handleSubmit(event){
         event.preventDefault()
+        try{
+
+            if(!image){
+                toast.error('Thumbnail not selected')
+                return
+            }
+            const courseData = {
+                courseTitle,
+                courseDescription: quillRef.current.root.innerHTML,
+                coursePrice: Number(coursePrice),
+                discount: Number(discount),
+                courseContent: chapters
+            }
+
+            const formData = new FormData()
+            formData.append('courseData', JSON.stringify(courseData))
+            formData.append('image', image)
+
+            const { data } = await axios.post(`${backenUrl}/api/educator/add-course`, formData, {withCredentials: true})
+            if(data.success){
+                toast.success(data.message)
+                setCourseTitle('')
+                setCoursePrice(0)
+                setDiscount(0)
+                setImage(null)
+                setChapters([])
+                quillRef.current.root.innerHTML = ''
+            }else{
+                toast.error(data.message)
+            }
+
+        }catch(error){
+            if(error?.response?.data?.message){
+                toast.error(error?.response?.data?.message)
+            }else{
+                toast.error(error.message)
+            }
+        }
 
     }
 

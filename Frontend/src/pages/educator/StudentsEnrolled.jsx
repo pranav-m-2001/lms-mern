@@ -1,18 +1,39 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { dummyStudentEnrolled } from '../../assets/assets'
 import Loading from '../../components/students/Loading'
+import { AppContext } from '../../context/AppContext'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 
 function StudentsEnrolled(){
 
-    const [enrolledStudents, setEnrolledStudents] = useState(null)
+    const {  backenUrl, isEducator } = useContext(AppContext)
+    const [enrolledStudents, setEnrolledStudents ] = useState(null)
 
-    function fetchEnrolledStudents(){
-        setEnrolledStudents(dummyStudentEnrolled)
+    async function fetchEnrolledStudents(){
+        try{
+
+            const { data } = await axios.get(`${backenUrl}/api/educator/enrolled-students`, {withCredentials: true})
+            if(data.success){
+                setEnrolledStudents(data?.enrolledStudents?.reverse() || [])
+            }else{
+                toast.error(data.message)
+            }
+
+        }catch(error){
+            if(error?.response?.data?.message){
+                toast.error(error?.response?.data?.message)
+            }else{
+                toast.error(error.message)
+            }
+        }
     }
 
     useEffect(()=>{
-        fetchEnrolledStudents()
-    },[])
+        if(isEducator){
+            fetchEnrolledStudents()
+        }
+    },[isEducator])
 
     return enrolledStudents ? (
         <div className='min-h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>

@@ -10,14 +10,16 @@ export const AppContext = createContext()
 
 function AppContextProvider({children}){
 
+    const backenUrl = import.meta.env.VITE_BACKEND_URL
     const currency = import.meta.env.VITE_CURRENCY
     const [allCourses, setAllCourses] = useState([])
     const [isEducator, setIsEducator] = useState(false)
     const [enrolledCourse, setEnrolledCourse] = useState([])
     const [userData, setUserData] = useState(null)
+    const [isAuthenticated, setIsAuthenticated] = useState(false)
     const navigate = useNavigate()
     const [token , setToken] = useState(Cookies.get('token') ? Cookies.get('token') : null )
-    const backenUrl = import.meta.env.VITE_BACKEND_URL
+    
 
     async function fetchAllCourse(){
         try{
@@ -48,7 +50,7 @@ function AppContextProvider({children}){
         course.courseRatings?.forEach((rating)=>{
             totalRating += rating.rating
         })
-        return totalRating / course.courseRatings?.length
+        return Math.floor(totalRating / course.courseRatings?.length)
     }
 
     function calculateChapterTime(chapter){
@@ -75,9 +77,10 @@ function AppContextProvider({children}){
 
     async function fecthEnrolledCourse(){
         try{
-
-            const response = await axios.get(`${backenUrl}/api/user/enrolled-courses`)
+            
+            const response = await axios.get(`${backenUrl}/api/user/enrolled-courses`, {withCredentials: true})
             if(response.data.success){
+                console.log(response.data.enrolledCourses.reverse())
                 setEnrolledCourse(response.data.enrolledCourses.reverse())
             }else{
                 toast.error(response.data.message)
@@ -90,6 +93,30 @@ function AppContextProvider({children}){
             }else{
                 toast.error('Something went wrong')
             }
+        }
+    }
+
+    async function checkAuth(){
+        try{
+
+            const response = await axios.get(`${backenUrl}/api/user/check-auth`, {withCredentials: true})
+            const data = response.data
+            if(data.success){
+                setIsAuthenticated(true)
+                setUserData(data.user)
+                return true
+            }else{
+                setIsAuthenticated(false)
+                return false
+            }
+
+        }catch(error){
+            if(error?.response?.data?.message){
+                toast.error(error?.response?.data?.message)
+            }else{
+                toast.error(error.message)
+            }
+            return false
         }
     }
 
@@ -115,13 +142,14 @@ function AppContextProvider({children}){
 
 
     useEffect(()=>{
+        checkAuth()
         fetchAllCourse()
-        fecthEnrolledCourse()
     },[])
 
     useEffect(()=>{
         if(token){
             fetchUserData()
+            fecthEnrolledCourse()
         }
     },[token])
 
@@ -129,7 +157,8 @@ function AppContextProvider({children}){
         currency,allCourses,setAllCourses,
         navigate,calculateRating,isEducator,
         calculateChapterTime,calculateCourseDuration,calculateNoOfLectures,
-        enrolledCourse,fecthEnrolledCourse,user,setUserData,token,setToken
+        enrolledCourse,fecthEnrolledCourse,userData,setUserData,token,setToken,backenUrl,
+        setIsEducator,isAuthenticated, setIsAuthenticated,checkAuth,
     }
 
     return(
