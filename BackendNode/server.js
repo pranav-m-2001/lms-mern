@@ -33,6 +33,10 @@ app.use('/api/user', express.json(), authRouter)
 app.use('/api/course', express.json(), courseRouter)
 app.post('/stripe', express.raw({type: 'application/json'}), stripeWebhook)
 
+app.get('/', (req,res)=>{
+    res.send('Api Working')
+})
+
 app.listen(PORT, ()=>{
     console.log(`Server listening to port ${PORT}`)
 })
